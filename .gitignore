@@ -1,0 +1,8 @@
+.idea
+.idea/*
+/.idea_modules/
+/target/
+/project/target/
+/project/project/
+/project/.DS_Store
+/.DS_Store
