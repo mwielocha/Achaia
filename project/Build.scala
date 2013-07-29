@@ -15,16 +15,21 @@ object ApplicationBuild extends Build {
     "com.netflix.astyanax" % "astyanax-core" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
     "com.netflix.astyanax" % "astyanax-thrift" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
     "com.netflix.astyanax" % "astyanax-entity-mapper" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
-    "org.scala-lang" % "scala-swing" % "2.10.2"
+    "org.scala-lang" % "scala-swing" % "2.9.2",
+//    "com.github.myst3r10n" % "moreswing-swing" % "0.1.2",
+    "com.github.benhutchison" % "scalaswingcontrib" % "1.4",
+    "com.github.myst3r10n" % "moreswing-swing_2.10" % "0.1.2"
   )
+
+//  resolvers += "Sonatype OSS" at "https://oss.sonatype.org/content/groups/public"
 
   val testDependencies = Seq("org.specs2" %% "specs2" % "1.11" % "test")
 
 
   val buildSettings = Defaults.defaultSettings ++ Seq(
     scalaVersion        := "2.10.2",
-    scalacOptions       := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions", "-language:postfixOps"),
-    javacOptions in GlobalScope += "-Djava.library.path=lib",
+//    scalacOptions       := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions", "-language:postfixOps"),
+//    javacOptions in GlobalScope += "-Djava.library.path=lib",
     javaOptions in Test += "-Dconfig.file=conf/test-application.conf",
     unmanagedClasspath in Runtime += file("conf/")
   )

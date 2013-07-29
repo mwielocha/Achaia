@@ -1,7 +1,6 @@
 package util
 
 import view.ClusterView
-import model.impl.AstyanaxCluster
 import java.io.{PrintWriter, StringWriter}
 import javax.swing.{JOptionPane, JScrollPane, JTextArea}
 import java.awt.Dimension

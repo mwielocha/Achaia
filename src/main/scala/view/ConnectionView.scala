@@ -1,10 +1,10 @@
 package view
 
-import _root_.model.impl.AstyanaxCluster
 import scala.swing._
 import javax.swing.{JScrollPane, JTextArea, JOptionPane, JLabel}
 import java.io.{PrintWriter, StringWriter}
 import util.ExceptionHandling
+import controller.ClusterController
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,35 +13,31 @@ import util.ExceptionHandling
  * Time: 16:10
  * To change this template use File | Settings | File Templates.
  */
-class ConnectionView(owner: Window) extends Dialog(owner) with ExceptionHandling {
+class ConnectionView extends Dialog with ExceptionHandling {
 
-  val nameTf = new TextField("Cluster")
-  val hostTf = new TextField("localhost")
-  val portTf = new TextField("9160")
+  val nameTextField = new TextField
+  val hostTestField = new TextField
+  val portTextField = new TextField
 
-  modal = true
+  val connect = new Button("Connect")
+
+  modal = false
   title = "New Connection"
   contents = new BorderPanel {
     add(new GridPanel(3, 2) {
       contents ++= Seq(
         new Label("name:"),
-        nameTf,
+        nameTextField,
         new Label("host:"),
-        hostTf,
+        hostTestField,
         new Label("port:"),
-        portTf
+        portTextField
       )
     }, BorderPanel.Position.Center)
-    add(new Button(Action("Connect") {
-      openClusterView
-    }), BorderPanel.Position.South)
+    add(connect, BorderPanel.Position.South)
   }
 
-  private def openClusterView {
-    withExceptionHandling {
-      new ClusterView(
-        new AstyanaxCluster(nameTf.text, hostTf.text, portTf.text.toInt)).visible = true
-      this.dispose()
-    }
-  }
+  bounds = new Rectangle(400, 500, 400, 140)
+  resizable = false
+  visible = true
 }
