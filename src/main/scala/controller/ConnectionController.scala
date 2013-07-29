@@ -22,7 +22,7 @@ class ConnectionController extends Logging with ExceptionHandling {
       logger.info("Connecting to: " + connectionModel)
       withExceptionHandling {
         new ClusterController with CassandraAware {
-          override val cassandraService = new CassandraService(
+          override lazy val cassandraService = new CassandraService(
             connectionModel.name,
             connectionModel.host,
             connectionModel.port

@@ -1,10 +1,11 @@
 package cassandra
 
 import com.netflix.astyanax.{Keyspace, Cluster}
-import scala.collection.mutable._
 import scala.collection.mutable
 import scala.collection.JavaConversions._
 import util.Logging
+import com.netflix.astyanax.model.{Rows, ColumnFamily}
+import com.netflix.astyanax.serializers.StringSerializer
 
 /**
  * author mikwie
@@ -42,4 +43,11 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
     .find(_.getName == keyspace).map(_.getColumnFamilyList.map(_.getName)).getOrElse(Seq("Error"))
 
   def cassandraUri = clusterName + ":" + clusterHost + ":" + clusterPort
+
+  def query(keyspace: String, columnFamily: String): Rows[String, String] = {
+    this(keyspace).prepareQuery(new ColumnFamily[String, String](columnFamily,
+      StringSerializer.get(), StringSerializer.get()
+    )).getAllRows.withColumnRange(null: String, null: String, false, 6)
+      .execute().getResult
+  }
 }

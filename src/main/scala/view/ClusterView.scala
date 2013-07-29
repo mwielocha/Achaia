@@ -67,7 +67,8 @@ class ClusterView(title: String) extends MainFrame with Logging {
   preferredSize = new Dimension(900, 900)
   contents = new BorderPanel {
     add(new SplitPane(Orientation.Vertical) {
-      dividerSize = 2
+      //dividerSize = 2
+      dividerLocation = 250
       leftComponent = new BorderPanel {
         add(new ScrollPane(tree), BorderPanel.Position.Center)
       }

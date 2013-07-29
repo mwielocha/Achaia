@@ -5,6 +5,10 @@ import view.ConnectionView
 
 object Main extends App {
 
+  UIManager.setLookAndFeel(
+    ch.randelshofer.quaqua.QuaquaManager.getLookAndFeel()
+  )
+
   new ConnectionController
 
 }

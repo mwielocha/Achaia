@@ -2,8 +2,9 @@ package util
 
 import view.ClusterView
 import java.io.{PrintWriter, StringWriter}
-import javax.swing.{JOptionPane, JScrollPane, JTextArea}
-import java.awt.Dimension
+import javax.swing.{UIManager, JOptionPane, JScrollPane, JTextArea}
+import java.awt.{BorderLayout, Dimension}
+import scala.swing._
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,6 +15,29 @@ import java.awt.Dimension
  */
 trait ExceptionHandling {
 
+  class ErrorDialog(message: String, stackTrace: String) extends Dialog {
+    title = "Error"
+    modal = true
+    contents = new BorderPanel {
+      add(new FlowPanel(FlowPanel.Alignment.Center)(
+        new Label("Error occured: " + message)), BorderPanel.Position.North)
+      add(new ScrollPane(new TextArea(stackTrace) {
+        editable = false
+      }) {
+        preferredSize = new Dimension(800, 500)
+      }, BorderPanel.Position.Center)
+      add(new FlowPanel(FlowPanel.Alignment.Right)(new Button(Action("Ok") {
+        ErrorDialog.this.dispose()
+        Unit
+      })), BorderPanel.Position.South)
+      add(new Label {
+        icon = UIManager.getIcon("OptionPane.errorIcon")
+        preferredSize = new Dimension(icon.getIconWidth + 10, icon.getIconHeight)
+        verticalAlignment = Alignment.Top
+      }, BorderPanel.Position.West)
+    }
+  }
+
   def withExceptionHandling(work: => Any) = {
     try {
       work
@@ -22,12 +46,7 @@ trait ExceptionHandling {
         val writer = new StringWriter()
         val printWriter = new PrintWriter(writer)
         e.printStackTrace(printWriter)
-        val textArea = new JTextArea(writer.toString)
-        textArea.setEnabled(false)
-        val scrollPane = new JScrollPane(textArea) {
-          override def getPreferredSize: Dimension = new Dimension(800, 500)
-        }
-        JOptionPane.showMessageDialog(null, scrollPane, "Error", JOptionPane.ERROR_MESSAGE)
+        new ErrorDialog(e.getMessage, writer.toString).visible = true
       }
     }
   }
