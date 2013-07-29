@@ -1,6 +1,7 @@
 package controller
 
 import view.ClusterView
+import cassandra.CassandraAware
 
 /**
  * author mikwie
@@ -8,6 +9,8 @@ import view.ClusterView
  */
 class ClusterController {
 
-  val view = new ClusterView("")
+  self: CassandraAware =>
+
+  val view = new ClusterView(cassandraService.cassandraUri)
 
 }

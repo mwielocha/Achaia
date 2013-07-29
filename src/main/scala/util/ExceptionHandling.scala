@@ -14,7 +14,7 @@ import java.awt.Dimension
  */
 trait ExceptionHandling {
 
-  def withExceptionHandling(work: => Unit) = {
+  def withExceptionHandling(work: => Any) = {
     try {
       work
     } catch {

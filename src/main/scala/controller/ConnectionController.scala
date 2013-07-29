@@ -2,14 +2,15 @@ package controller
 
 import view.ConnectionView
 import scala.swing.event.ButtonClicked
-import util.Logging
+import util.{ExceptionHandling, Logging}
 import model.ConnectionModel
+import cassandra.{CassandraService, CassandraAware}
 
 /**
  * author mikwie
  *
  */
-class ConnectionController extends Logging {
+class ConnectionController extends Logging with ExceptionHandling {
 
   val view = new ConnectionView
   var connectionModel = ConnectionModel()
@@ -19,7 +20,15 @@ class ConnectionController extends Logging {
     case ButtonClicked(view.connect) => {
       connectionModel = getData
       logger.info("Connecting to: " + connectionModel)
-      new ClusterController
+      withExceptionHandling {
+        new ClusterController with CassandraAware {
+          override val cassandraService = new CassandraService(
+            connectionModel.name,
+            connectionModel.host,
+            connectionModel.port
+          )
+        }
+      }
       view.dispose()
     }
   }

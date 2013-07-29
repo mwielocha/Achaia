@@ -1,5 +1,6 @@
 package view
 
+import _root_.model.Node
 import swing._
 import model._
 import javax.swing._
@@ -21,11 +22,9 @@ import scalaswingcontrib.tree.{TreeModel, Tree}
  */
 class ClusterView(title: String) extends MainFrame with Logging {
 
-  case class Node(value: String, children: Node*)
-
   val tree = new Tree[Node] {
     model = TreeModel()(_.children)
-    renderer = Tree.Renderer(_.value)
+    renderer = Tree.Renderer(_.name)
     selection
   }
 
