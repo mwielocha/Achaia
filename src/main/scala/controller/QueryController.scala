@@ -1,11 +1,12 @@
 package controller
 
 import view.QueryView
-import model.{ColumnModel, RowModel, Node}
+import model.{BrowseModel, ColumnModel, RowModel, Node}
 import cassandra.CassandraAware
 import scala.collection.JavaConversions._
 import javax.swing.table.AbstractTableModel
 import com.google.common.collect.TreeBasedTable
+import scala.swing.event.{TableRowsSelected, ButtonClicked}
 
 /**
  * Created with IntelliJ IDEA.
@@ -20,24 +21,29 @@ class QueryController(val keyspace: Node, val cf: Node) {
 
   val view = new QueryView(keyspace.name + "/" + cf.name)
 
-  val tableData: Seq[RowModel] = cassandraService.query(keyspace.name, cf.name).toStream.take(100).map(row => {
-    RowModel(row.getKey, row.getColumns.toStream.take(6).map(column => {
-      ColumnModel(column.getName, column.getStringValue)
-    }))
-  })
+  view.browseView.model = new BrowseModel[String, AnyRef](
+    cassandraService.query(keyspace.name, cf.name)
+  )
 
-  val tableModel = new AbstractTableModel {
-    def getRowCount: Int = tableData.size
-
-    def getColumnCount: Int = 2
-
-    def getValueAt(row: Int, column: Int): AnyRef = tableData(row)
-
-    override def getColumnName(index: Int): String = {
-      Seq("Row", "Columns")(index)
+  view.listenTo(view.Query.button)
+  view.reactions += {
+    case ButtonClicked(view.Query.button) => {
+      val rowKey: String = view.Query.field.text
+      view.browseView.model = new BrowseModel[String, AnyRef](
+        rowKey match {
+          case rowKey if(rowKey == null || rowKey.isEmpty) => cassandraService.query(keyspace.name, cf.name)
+          case rowKey => cassandraService.queryWithRowKey(keyspace.name, cf.name, rowKey)
+        }
+      )
     }
   }
 
-  view.table.model = tableModel
-  tableModel.fireTableDataChanged()
+  view.browseView.selections.foreach(view.listenTo(_))
+  view.reactions += {
+    case e: TableRowsSelected => {
+      val row = e.range.head
+      val value = e.source.model.getValueAt(row, 1).asInstanceOf[String]
+      view.editor.text = value
+    }
+  }
 }

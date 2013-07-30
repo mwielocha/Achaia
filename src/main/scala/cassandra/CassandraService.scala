@@ -5,7 +5,9 @@ import scala.collection.mutable
 import scala.collection.JavaConversions._
 import util.Logging
 import com.netflix.astyanax.model.{Rows, ColumnFamily}
-import com.netflix.astyanax.serializers.StringSerializer
+import com.netflix.astyanax.serializers.{TimeUUIDSerializer, StringSerializer}
+import java.util.UUID
+import java.nio.ByteBuffer
 
 /**
  * author mikwie
@@ -44,10 +46,43 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
 
   def cassandraUri = clusterName + ":" + clusterHost + ":" + clusterPort
 
-  def query(keyspace: String, columnFamily: String): Rows[String, String] = {
-    this(keyspace).prepareQuery(new ColumnFamily[String, String](columnFamily,
-      StringSerializer.get(), StringSerializer.get()
-    )).getAllRows.withColumnRange(null: String, null: String, false, 6)
+  def query(keyspace: String, columnFamily: String): Rows[String, AnyRef] = {
+    val comparatorType = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getComparatorType
+    val validatorType = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getKeyValidationClass
+    logger.info("Comparator: " + comparatorType + ", validator: " + validatorType)
+
+    this(keyspace).prepareQuery(createColumnfamily(keyspace, columnFamily))
+      .getAllRows.withColumnRange(getNull[AnyRef], getNull[AnyRef], false, 60)
       .execute().getResult
+  }
+
+  def getNull[C]: C = null.asInstanceOf[C]
+
+  def queryWithRowKey(keyspace: String, columnFamily: String, rowKey: String): Rows[String, AnyRef] = {
+    this(keyspace).prepareQuery(createColumnfamily(keyspace, columnFamily))
+      .getRowSlice(rowKey).withColumnRange(getNull[AnyRef], getNull[AnyRef], false, 60)
+      .execute().getResult
+  }
+
+  def createColumnfamily(keyspace: String, columnFamily: String): ColumnFamily[String, AnyRef] = {
+    val comparatorType = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getComparatorType
+    val instance = comparatorType match {
+      case "org.apache.cassandra.db.marshal.TimeUUIDType" => {
+        new ColumnFamily[String, UUID](columnFamily,
+          StringSerializer.get(), TimeUUIDSerializer.get()
+        )
+      }
+      case "org.apache.cassandra.db.marshal.ReversedType(org.apache.cassandra.db.marshal.TimeUUIDType)" => {
+        new ColumnFamily[String, UUID](columnFamily,
+          StringSerializer.get(), TimeUUIDSerializer.get()
+        )
+      }
+      case _ => {
+        new ColumnFamily[String, String](columnFamily,
+          StringSerializer.get(), StringSerializer.get()
+        )
+      }
+    }
+    instance.asInstanceOf[ColumnFamily[String, AnyRef]]
   }
 }

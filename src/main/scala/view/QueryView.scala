@@ -1,16 +1,18 @@
 package view
 
 import moreswing.swing.InternalFrame
-import scala.swing.{ScrollPane, Table, BorderPanel}
-import java.awt._
+import scala.swing._
 import javax.swing._
 import javax.swing.table.TableCellRenderer
-import model.{ColumnModel, RowModel}
+import _root_.model.{ColumnModel, RowModel}
 import scala.collection.JavaConversions._
-import model.ColumnModel
-import model.RowModel
+import _root_.model.ColumnModel
+import _root_.model.RowModel
 import javax.swing.event.ListDataListener
-import model.RowModel
+import _root_.model.RowModel
+import scala.swing
+import java.awt.{FlowLayout, Dimension, Rectangle}
+import jsyntaxpane.DefaultSyntaxKit
 
 /**
  * author mikwie
@@ -18,46 +20,40 @@ import model.RowModel
  */
 class QueryView(title: String) extends InternalFrame(title, true, true, true, true) {
 
-  val table = new Table() {
-    override lazy val peer: JTable = new JTable() {
-      override def getCellRenderer(row: Int, column: Int): TableCellRenderer = {
-        new TableCellRenderer {
-          def getTableCellRendererComponent(table: JTable, value: Any, p3: Boolean, p4: Boolean, p5: Int, p6: Int): Component = {
-            value match {
-              case m: RowModel => {
-                column match {
-                  case 0 => {
-                    new JLabel(m.key)
-                  }
-                  case 1 => {
-                    new JList(new ListModel[String] {
-                      def getElementAt(index: Int): String = m.columns(index).value
+  val browseView = new BrowseView[String, AnyRef]
 
-                      def getSize: Int = m.columns.size
+  object Query {
+    val button = new Button("Search") {
+      horizontalAlignment = Alignment.Left
+    }
 
-                      def addListDataListener(p1: ListDataListener) {}
-
-                      def removeListDataListener(p1: ListDataListener) {}
-                    })
-                  }
-                }
-              }
-              case _ => new JLabel("Error")
-            }
-          }
-        }
-      }
+    val field = new TextField("") {
+      horizontalAlignment = Alignment.Left
     }
   }
-  table.showGrid = true
-  table.autoResizeMode = Table.AutoResizeMode.AllColumns
 
-  val leftPanel = new BorderPanel
+  val leftPanel = new FlowPanel(new GridPanel(3, 1) {
+    border = BorderFactory.createEmptyBorder()
+    contents ++= Seq[Component](
+      new Label("Row key:") {
+        horizontalAlignment = Alignment.Left
+      }, Query.field, Query.button
+    )
+  })
+
+  DefaultSyntaxKit.initKit()
+  val editor = new util.EditorPane() {
+    preferredSize = new Dimension(500, 400)
+  }
 
   contents = new BorderPanel {
     add(leftPanel, BorderPanel.Position.West)
-    add(new ScrollPane(table), BorderPanel.Position.Center)
+    add(new ScrollPane(browseView), BorderPanel.Position.Center)
+    add(new ScrollPane(editor), BorderPanel.Position.South)
   }
+
+  editor.contentType = "text/javascript"
+  editor.text = ""
 
   bounds = new Rectangle(10, 10, 500, 500)
 
