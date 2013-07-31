@@ -18,7 +18,10 @@ object ApplicationBuild extends Build {
     "org.scala-lang" % "scala-swing" % "2.9.2",
 //    "com.github.myst3r10n" % "moreswing-swing" % "0.1.2",
     "com.github.benhutchison" % "scalaswingcontrib" % "1.4",
-    "com.github.myst3r10n" % "moreswing-swing_2.10" % "0.1.2"
+    "com.github.myst3r10n" % "moreswing-swing_2.10" % "0.1.2",
+    "org.swinglabs" % "swingx" % "1.6.1",
+    "com.typesafe.akka" % "akka-actor_2.10" % "2.2.0",
+    "com.google.code.gson" % "gson" % "2.2.4"
   )
 
 //  resolvers += "Sonatype OSS" at "https://oss.sonatype.org/content/groups/public"

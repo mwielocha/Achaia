@@ -1,18 +1,26 @@
 package view
 
+import _root_.model.EmptyQueryResult
 import moreswing.swing.InternalFrame
 import scala.swing._
 import javax.swing._
 import javax.swing.table.TableCellRenderer
-import _root_.model.{ColumnModel, RowModel}
 import scala.collection.JavaConversions._
-import _root_.model.ColumnModel
-import _root_.model.RowModel
-import javax.swing.event.ListDataListener
-import _root_.model.RowModel
-import scala.swing
-import java.awt.{FlowLayout, Dimension, Rectangle}
+
+import java.awt._
 import jsyntaxpane.DefaultSyntaxKit
+import components.{ScrollablePanel, XTreeTable}
+import scala.swing.Font
+import scala.swing.Table.AutoResizeMode
+import java.awt.Rectangle
+import scala.swing.Label
+import java.awt.Font
+import scala.swing.Font
+import scala.swing.ScrollPane
+import scala.swing.Button
+import java.awt.Dimension
+import scala.swing.TextField
+import org.jdesktop.swingx.decorator.HighlighterFactory
 
 /**
  * author mikwie
@@ -20,42 +28,61 @@ import jsyntaxpane.DefaultSyntaxKit
  */
 class QueryView(title: String) extends InternalFrame(title, true, true, true, true) {
 
-  val browseView = new BrowseView[String, AnyRef]
+  val treeTable = new XTreeTable(EmptyQueryResult) {
+    highlighters = HighlighterFactory.createSimpleStriping(new Color(233, 237, 242))
+    rowHeight = 30
+  }
 
   object Query {
     val button = new Button("Search") {
-      horizontalAlignment = Alignment.Left
     }
 
     val field = new TextField("") {
-      horizontalAlignment = Alignment.Left
+      columns = 10
     }
   }
 
-  val leftPanel = new FlowPanel(new GridPanel(3, 1) {
-    border = BorderFactory.createEmptyBorder()
-    contents ++= Seq[Component](
-      new Label("Row key:") {
-        horizontalAlignment = Alignment.Left
-      }, Query.field, Query.button
+  val leftPanel = new FlowPanel(new GridPanel(0, 2) {
+    contents ++= Seq(
+      new Label("Row key:"),
+      Query.field, new Label(""),
+      Query.button
     )
-  })
+  }) {
+    border = BorderFactory.createTitledBorder("Query")
+  }
 
   DefaultSyntaxKit.initKit()
-  val editor = new util.EditorPane() {
-    preferredSize = new Dimension(500, 400)
+  val editor = new components.EditorPane() {
+    preferredSize = new Dimension(500, 200)
+  }
+
+  val innerSplitPane = new BorderPanel {
+    add(leftPanel, BorderPanel.Position.North)
+    add(new ScrollPane(treeTable), BorderPanel.Position.Center)
+  }
+
+  val outerSplitPane = new SplitPane(Orientation.Horizontal, innerSplitPane,
+    new BorderPanel {
+      add(new ScrollPane(editor), BorderPanel.Position.Center)
+    }
+  ) {
+    dividerLocation = 100
+  }
+
+  val progressBar = new ProgressBar {
+    preferredSize = new Dimension(200, 20)
   }
 
   contents = new BorderPanel {
-    add(leftPanel, BorderPanel.Position.West)
-    add(new ScrollPane(browseView), BorderPanel.Position.Center)
-    add(new ScrollPane(editor), BorderPanel.Position.South)
+    add(outerSplitPane, BorderPanel.Position.Center)
+    add(new FlowPanel(FlowPanel.Alignment.Right)(progressBar), BorderPanel.Position.South)
   }
 
   editor.contentType = "text/javascript"
   editor.text = ""
 
-  bounds = new Rectangle(10, 10, 500, 500)
+  bounds = new Rectangle(10, 10, 800, 900)
 
   visible = true
 

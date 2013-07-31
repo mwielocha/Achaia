@@ -1,4 +1,4 @@
-package util
+package components
 
 import scala.swing.{Component, Table}
 import java.awt.Color

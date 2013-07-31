@@ -29,10 +29,8 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
   val cluster = clusterConnection.connect
 
   cluster.describeKeyspaces().foreach(keyspaceDefinition => {
-    val keyspaceConnection = new KeyspaceConnection(keyspaceDefinition.getName,
-      clusterName: String, clusterHost: String, clusterPort: Int)
     logger.info("Connecting to keyspace: " + keyspaceDefinition.getName)
-    keyspaces += (keyspaceDefinition.getName -> keyspaceConnection.connect)
+    keyspaces += (keyspaceDefinition.getName -> cluster.getKeyspace(keyspaceDefinition.getName))
   })
 
   def apply(keyspaceName: String): Keyspace = {
@@ -52,7 +50,7 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
     logger.info("Comparator: " + comparatorType + ", validator: " + validatorType)
 
     this(keyspace).prepareQuery(createColumnfamily(keyspace, columnFamily))
-      .getAllRows.withColumnRange(getNull[AnyRef], getNull[AnyRef], false, 60)
+      .getAllRows.setRowLimit(20).withColumnRange(getNull[AnyRef], getNull[AnyRef], false, 20)
       .execute().getResult
   }
 

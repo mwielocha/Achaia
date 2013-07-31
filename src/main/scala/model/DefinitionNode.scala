@@ -4,9 +4,9 @@ package model
  * author mikwie
  *
  */
-case class Node(val name: String, val nodeType: Node.Type, val children: Seq[Node] = Nil)
+case class DefinitionNode(val name: String, val nodeType: DefinitionNode.Type, val children: Seq[DefinitionNode] = Nil)
 
-object Node {
+object DefinitionNode {
   sealed trait Type
 
   object Type {
