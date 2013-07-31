@@ -12,6 +12,8 @@ import scalaswingcontrib.PopupMenu
 import scala.swing
 import scala.swing
 import scalaswingcontrib.tree.{TreeModel, Tree}
+import java.awt.Toolkit
+import com.apple.eawt.Application
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,9 +24,18 @@ import scalaswingcontrib.tree.{TreeModel, Tree}
  */
 class ClusterView(title: String) extends MainFrame with Logging {
 
+  val newConnectionMenuItem = new MenuItem("New Connection")
+
+  menuBar = new MenuBar {
+    contents += new Menu("Achaia") {
+      contents += newConnectionMenuItem
+    }
+  }
+
   val tree = new Tree[DefinitionNode] {
     model = TreeModel()(_.children)
     renderer = Tree.Renderer(_.name)
+    border = BorderFactory.createEmptyBorder()
     selection
   }
 
@@ -64,17 +75,22 @@ class ClusterView(title: String) extends MainFrame with Logging {
 //  frame.visible = true
 //  frame.front
 
-  preferredSize = new Dimension(900, 900)
+  preferredSize = new Dimension(1200, 900)
   contents = new BorderPanel {
+    border = BorderFactory.createEmptyBorder()
     add(new SplitPane(Orientation.Vertical) {
-      //dividerSize = 2
-      dividerLocation = 250
+      dividerSize = 2
+      dividerLocation = 290
       leftComponent = new BorderPanel {
-        add(new ScrollPane(tree), BorderPanel.Position.Center)
+        add(new ScrollPane(tree) {
+          horizontalScrollBarPolicy = ScrollPane.BarPolicy.Never
+        }, BorderPanel.Position.Center)
       }
       rightComponent = desktop
     }, BorderPanel.Position.Center)
   }
 
+  //Application.getApplication.setDefaultMenuBar(system.peer)
+  centerOnScreen()
   visible = true
 }

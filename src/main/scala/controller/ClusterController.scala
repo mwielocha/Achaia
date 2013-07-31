@@ -35,6 +35,7 @@ class ClusterController {
     case e: MouseClicked => {
       if((e.modifiers & Meta) == Meta) {
         val path = view.tree.getClosestPathForLocation(e.point.x, e.point.y)
+        view.tree.selectPaths(path)
         nodeModel = (path.head, path.last)
         import DefinitionNode.Type._
         nodeModel._2.nodeType match {
@@ -56,6 +57,13 @@ class ClusterController {
       }
       view.desktop += queryController.view
       queryController.view.front
+    }
+  }
+
+  view.listenTo(view.newConnectionMenuItem)
+  view.reactions += {
+    case ButtonClicked(view.newConnectionMenuItem) => {
+      new ConnectionController
     }
   }
 

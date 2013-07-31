@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.parsing.json.{JSONFormat, JSON}
 import com.google.gson.{JsonParser, JsonObject, GsonBuilder, Gson}
+import scala.swing.Swing
 
 /**
  * Created with IntelliJ IDEA.
@@ -48,7 +49,9 @@ class QueryController(val keyspace: DefinitionNode, val cf: DefinitionNode) exte
     view.progressBar.indeterminate = true
     (queryingActor ? QueryRequest(q)).mapTo[Rows[_, _]].map(rows => {
       setQueryResult(QueryResultNode(rows, 20))
-      view.progressBar.indeterminate = false
+      Swing.onEDT({
+        view.progressBar.indeterminate = false
+      })
     })
   }
 
@@ -58,6 +61,14 @@ class QueryController(val keyspace: DefinitionNode, val cf: DefinitionNode) exte
       e.path.getLastPathComponent match {
         case node: QueryColumnResultNode => {
           view.editor.text = JsonFormatter.format(node.valueAt(1))
+          node.parent match {
+            case Some(parent) => {
+              view.rowKeyTextField.text = parent.valueAt(0)
+              view.rowKeyTextField.repaint
+              view.rowKeyTextField.revalidate
+            }
+            case _ =>
+          }
         }
         case _ =>
       }

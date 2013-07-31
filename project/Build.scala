@@ -21,7 +21,8 @@ object ApplicationBuild extends Build {
     "com.github.myst3r10n" % "moreswing-swing_2.10" % "0.1.2",
     "org.swinglabs" % "swingx" % "1.6.1",
     "com.typesafe.akka" % "akka-actor_2.10" % "2.2.0",
-    "com.google.code.gson" % "gson" % "2.2.4"
+    "com.google.code.gson" % "gson" % "2.2.4",
+    "org.simplericity.macify" % "macify" % "1.0"
   )
 
 //  resolvers += "Sonatype OSS" at "https://oss.sonatype.org/content/groups/public"
@@ -39,5 +40,5 @@ object ApplicationBuild extends Build {
 
   val main = Project(id = appName, base = file("."),
     settings = buildSettings ++ Seq(libraryDependencies ++= appDependencies)
-  )
+  ).settings(resolvers += "simplericity" at "http://simplericity.org/repository/")
 }

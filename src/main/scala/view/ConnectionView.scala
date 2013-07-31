@@ -1,10 +1,13 @@
 package view
 
 import scala.swing._
-import javax.swing.{JScrollPane, JTextArea, JOptionPane, JLabel}
+import javax.swing._
 import java.io.{PrintWriter, StringWriter}
 import util.ExceptionHandling
 import controller.ClusterController
+import components.ImagePanel
+import javax.imageio.ImageIO
+import javax.swing.border.{EtchedBorder, Border}
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,10 +24,16 @@ class ConnectionView extends Dialog with ExceptionHandling {
 
   val connect = new Button("Connect")
 
+  val imagePanel = new ImagePanel(getClass.getResource("/cassandra.jpg")) {
+    preferredSize = new Dimension(536, 393)
+  }
+
   modal = false
   title = "New Connection"
   contents = new BorderPanel {
+    add(imagePanel, BorderPanel.Position.North)
     add(new GridPanel(3, 2) {
+      border = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED)
       contents ++= Seq(
         new Label("name:"),
         nameTextField,
@@ -37,7 +46,8 @@ class ConnectionView extends Dialog with ExceptionHandling {
     add(connect, BorderPanel.Position.South)
   }
 
-  bounds = new Rectangle(400, 500, 400, 140)
-  resizable = false
+  size = new Dimension(536, 393 + 160)
+  resizable = true
+  centerOnScreen()
   visible = true
 }

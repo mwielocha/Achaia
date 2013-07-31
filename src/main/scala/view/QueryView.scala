@@ -33,6 +33,13 @@ class QueryView(title: String) extends InternalFrame(title, true, true, true, tr
     rowHeight = 30
   }
 
+  val rowKeyTextField = new TextField() {
+    columns = 30
+    editable = false
+    border = BorderFactory.createEmptyBorder()
+    background = null
+  }
+
   object Query {
     val button = new Button("Search") {
     }
@@ -59,15 +66,19 @@ class QueryView(title: String) extends InternalFrame(title, true, true, true, tr
 
   val innerSplitPane = new BorderPanel {
     add(leftPanel, BorderPanel.Position.North)
-    add(new ScrollPane(treeTable), BorderPanel.Position.Center)
+    add(new ScrollPane(treeTable) {
+      preferredSize = new Dimension(500, 700)
+    }, BorderPanel.Position.Center)
   }
 
   val outerSplitPane = new SplitPane(Orientation.Horizontal, innerSplitPane,
     new BorderPanel {
+      add(new FlowPanel(FlowPanel.Alignment.Left)(new Label("Row:"), rowKeyTextField), BorderPanel.Position.North)
       add(new ScrollPane(editor), BorderPanel.Position.Center)
     }
   ) {
-    dividerLocation = 100
+    dividerSize = 2
+    dividerLocation = 500
   }
 
   val progressBar = new ProgressBar {
@@ -76,13 +87,13 @@ class QueryView(title: String) extends InternalFrame(title, true, true, true, tr
 
   contents = new BorderPanel {
     add(outerSplitPane, BorderPanel.Position.Center)
-    add(new FlowPanel(FlowPanel.Alignment.Right)(progressBar), BorderPanel.Position.South)
+    add(new FlowPanel(FlowPanel.Alignment.Left)(progressBar), BorderPanel.Position.South)
   }
 
   editor.contentType = "text/javascript"
   editor.text = ""
 
-  bounds = new Rectangle(10, 10, 800, 900)
+  bounds = new Rectangle(10, 10, 800, 800)
 
   visible = true
 
