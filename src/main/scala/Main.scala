@@ -1,28 +1,26 @@
 import controller.ConnectionController
+import java.awt.EventQueue
 import javax.swing.UIManager.LookAndFeelInfo
-import javax.swing.{JOptionPane, JDesktopPane, JFileChooser, UIManager}
+import javax.swing._
 import org.simplericity.macify.eawt.{DefaultApplication, ApplicationEvent, ApplicationListener}
 import swing._
 import view.ConnectionView
 import scala.collection.JavaConversions._
 
-object Main extends App with ApplicationListener {
+object Main extends ApplicationListener {
 
-//  UIManager.setLookAndFeel(
-//    ch.randelshofer.quaqua.QuaquaManager.getLookAndFeel()
-//  )
-//  UIManager.getInstalledLookAndFeels().find(_.getName == "Nimbus") match {
-//    case Some(laf) => UIManager.setLookAndFeel(laf.getClassName());
-//    case None =>
-//  }
+  def main(args: Array[String]) {
+    System.setProperty("apple.laf.useScreenMenuBar", "true")
+    System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Achaia");
 
-  System.setProperty("com.apple.macos.useScreenMenuBar", "true")
-  System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Achaia");
-
-  new ConnectionController
-
-  val defaultApplication = new DefaultApplication()
-  defaultApplication.addApplicationListener(this)
+    SwingUtilities.invokeLater(new Runnable {
+      def run() {
+        val defaultApplication = new DefaultApplication()
+        defaultApplication.addApplicationListener(Main.this)
+        new ConnectionController
+      }
+    })
+  }
 
   def handleAbout(event: ApplicationEvent) {
     JOptionPane.showMessageDialog(null, "OS X told us to open " + event.getFilename());
@@ -41,7 +39,9 @@ object Main extends App with ApplicationListener {
 
   def handlePrintFile(event: ApplicationEvent) {}
 
-  def handleQuit(event: ApplicationEvent) {}
+  def handleQuit(event: ApplicationEvent) {
+    System.exit(0)
+  }
 
   def handleReopenApplication(event: ApplicationEvent) {}
 }

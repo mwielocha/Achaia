@@ -27,7 +27,7 @@ class ClusterView(title: String) extends MainFrame with Logging {
   val newConnectionMenuItem = new MenuItem("New Connection")
 
   menuBar = new MenuBar {
-    contents += new Menu("Achaia") {
+    contents += new Menu("Connection") {
       contents += newConnectionMenuItem
     }
   }
