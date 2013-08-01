@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 import sbtassembly.Plugin._
 import AssemblyKeys._
+import net.virtualvoid.sbt.graph.Plugin._
 
 
 object ApplicationBuild extends Build {
@@ -48,6 +49,6 @@ object ApplicationBuild extends Build {
   )
 
   val main = Project(id = appName, base = file("."),
-    settings = buildSettings ++ assemblySettings ++ Seq(libraryDependencies ++= appDependencies)
+    settings = buildSettings ++ assemblySettings ++ Seq(libraryDependencies ++= appDependencies) ++ graphSettings
   ).settings(resolvers += "simplericity" at "http://simplericity.org/repository/")
 }
