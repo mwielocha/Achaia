@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import com.github.retronym.SbtOneJar
 
 
 object ApplicationBuild extends Build {
@@ -31,6 +32,7 @@ object ApplicationBuild extends Build {
 
 
   val buildSettings = Defaults.defaultSettings ++ Seq(
+    exportJars := true,
     scalaVersion        := "2.10.2",
 //    scalacOptions       := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions", "-language:postfixOps"),
 //    javacOptions in GlobalScope += "-Djava.library.path=lib",
@@ -39,6 +41,6 @@ object ApplicationBuild extends Build {
   )
 
   val main = Project(id = appName, base = file("."),
-    settings = buildSettings ++ Seq(libraryDependencies ++= appDependencies)
+    settings = buildSettings ++  SbtOneJar.oneJarSettings ++ Seq(libraryDependencies ++= appDependencies)
   ).settings(resolvers += "simplericity" at "http://simplericity.org/repository/")
 }

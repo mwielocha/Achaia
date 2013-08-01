@@ -9,7 +9,7 @@ import scala.collection.JavaConversions._
 
 import java.awt._
 import jsyntaxpane.DefaultSyntaxKit
-import components.{ScrollablePanel, XTreeTable}
+import components.{FillPanel, ScrollablePanel, XTreeTable}
 import scala.swing.Font
 import scala.swing.Table.AutoResizeMode
 import java.awt.Rectangle
@@ -64,11 +64,13 @@ class QueryView(title: String) extends InternalFrame(title, true, true, true, tr
     preferredSize = new Dimension(500, 200)
   }
 
+  val treeTableScrollPane = new ScrollPane(treeTable) {
+    preferredSize = new Dimension(500, 700)
+  }
+
   val innerSplitPane = new BorderPanel {
     add(leftPanel, BorderPanel.Position.North)
-    add(new ScrollPane(treeTable) {
-      preferredSize = new Dimension(500, 700)
-    }, BorderPanel.Position.Center)
+    add(treeTableScrollPane, BorderPanel.Position.Center)
   }
 
   val outerSplitPane = new SplitPane(Orientation.Horizontal, innerSplitPane,

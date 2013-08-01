@@ -25,9 +25,11 @@ case object EmptyQueryResult extends SimpleTreeTableNode[String] {
   def parent: Option[_ <: SimpleTreeTableNode[String]] = None
 }
 
-case class QueryResultNode(val rows: Rows[_, _], size: Int) extends SimpleTreeTableNode[String] {
+case class QueryResultNode(val rows: Seq[QueryRowResultNode], size: Int) extends SimpleTreeTableNode[String] {
 
-  def childrenStream = rows.toStream.take(size).map(new QueryRowResultNode(Some(this), _)).force
+  val sequance = rows.map(row => row.copy(parent = Some(this)))
+
+  def childrenStream = sequance.toStream
 
   def valueAt(index: Int): String = "Result"
 
@@ -36,11 +38,20 @@ case class QueryResultNode(val rows: Rows[_, _], size: Int) extends SimpleTreeTa
   def parent: Option[_ <: SimpleTreeTableNode[String]] = None
 }
 
-class QueryRowResultNode(val parent: Option[QueryResultNode], val row: Row[_, _], size: Int = 10) extends SimpleTreeTableNode[String] {
+object QueryResultNode {
 
-  val values = Seq(row.getKey.toString, "")
+  def apply(rows: Rows[_, _], size: Int): QueryResultNode = {
+    QueryResultNode(rows.toStream.take(size).map(QueryRowResultNode(_)), size)
+  }
+}
 
-  def childrenStream = row.getColumns.toStream.take(size).map(new QueryColumnResultNode(Some(this), _)).force
+case class QueryRowResultNode(val parent: Option[QueryResultNode], val key: String, val columns: Seq[QueryColumnResultNode], size: Int = 10) extends SimpleTreeTableNode[String] {
+
+  val sequence = columns.map(_.copy(parent = Some(this)))
+
+  val values = Seq(key, "")
+
+  def childrenStream = sequence.toStream
 
   def valueAt(index: Int): String = values(index)
 
@@ -48,13 +59,27 @@ class QueryRowResultNode(val parent: Option[QueryResultNode], val row: Row[_, _]
 
 }
 
-class QueryColumnResultNode(val parent: Option[QueryRowResultNode], val column: Column[_]) extends SimpleTreeTableNode[String] {
+object QueryRowResultNode {
 
-  val values = Seq(column.getName.toString, column.getStringValue)
+  def apply(row: Row[_, _]): QueryRowResultNode = {
+    QueryRowResultNode(None, row.getKey.toString, row.getColumns.toStream.map(QueryColumnResultNode(_)))
+  }
+}
+
+case class QueryColumnResultNode(val parent: Option[QueryRowResultNode], val name: String, val value: String) extends SimpleTreeTableNode[String] {
+
+  val values = Seq(name, value)
 
   def childrenStream: Stream[_ <: TreeTableNode] = Stream.empty[TreeTableNode]
 
   def valueAt(index: Int): String = values(index)
 
   def columnCount: Int = 2
+}
+
+object QueryColumnResultNode {
+
+  def apply(column: Column[_]): QueryColumnResultNode = {
+    QueryColumnResultNode(None, column.getName.toString, column.getStringValue)
+  }
 }
