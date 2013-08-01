@@ -22,6 +22,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.parsing.json.{JSONFormat, JSON}
 import com.google.gson.{JsonParser, JsonObject, GsonBuilder, Gson}
 import scala.swing.Swing
+import com.google.common.base.Strings
 
 /**
  * Created with IntelliJ IDEA.
@@ -71,6 +72,24 @@ class QueryController(val keyspace: DefinitionNode, val cf: DefinitionNode) exte
           }
         }
         case _ =>
+      }
+    }
+  }
+
+  view.listenTo(view.Query.button)
+  view.reactions += {
+    case ButtonClicked(view.Query.button) => {
+      view.Query.field.text match {
+        case key if(key == null || key.isEmpty) => {
+          performQuery(Unit => {
+            cassandraService.query(keyspace.name, cf.name)
+          })
+        }
+        case key => {
+          performQuery(Unit => {
+            cassandraService.queryWithRowKey(keyspace.name, cf.name, key)
+          })
+        }
       }
     }
   }
