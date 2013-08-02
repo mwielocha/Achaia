@@ -16,7 +16,7 @@ object ApplicationBuild extends Build {
 
   val appDependencies =  Seq(
     "com.netflix.astyanax" % "astyanax-core" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
-    "com.netflix.astyanax" % "astyanax-thrift" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
+    "com.netflix.astyanax" % "astyanax-thrift" % V.astyanax exclude("javax.servlet", "servlet-api"),
     "com.netflix.astyanax" % "astyanax-entity-mapper" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,
     "org.scala-lang" % "scala-swing" % "2.10.2",
 //    "com.github.myst3r10n" % "moreswing-swing" % "0.1.2",
