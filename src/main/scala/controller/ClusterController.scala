@@ -67,5 +67,12 @@ class ClusterController {
     }
   }
 
+  view.listenTo(view.refreshMenuItem)
+  view.reactions += {
+    case ButtonClicked(view.refreshMenuItem) => {
+      refresh
+    }
+  }
+
   refresh
 }

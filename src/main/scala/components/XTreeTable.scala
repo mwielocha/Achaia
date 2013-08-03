@@ -4,14 +4,16 @@ import _root_.util.Logging
 import scala.swing.{Publisher, Component}
 import org.jdesktop.swingx.JXTreeTable
 import org.jdesktop.swingx.treetable.{DefaultTreeTableModel, TreeTableNode, TreeTableModel}
-import javax.swing.tree.{TreeNode, TreePath}
+import javax.swing.tree.{DefaultTreeCellRenderer, TreeCellRenderer, TreeNode, TreePath}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener, TreeModelListener}
-import java.util
+import java.{awt, util}
 import scala.collection.JavaConversions._
 import scala.swing.event.Event
 import scala.swing.Table.AutoResizeMode
 import org.jdesktop.swingx.decorator.Highlighter
 import tools.TableColumnAdjuster
+import scalaswingcontrib.tree.{TreeModel, Tree}
+import javax.swing.{Icon, JTree}
 
 /**
  * author mikwie
@@ -20,6 +22,8 @@ import tools.TableColumnAdjuster
 class XTreeTable(var rootNode: TreeTableNode) extends Component {
 
   override lazy val peer = new JXTreeTable()
+
+  var cellRenderer: SimpleCellRenderer[_] = new SimpleCellRenderer[AnyRef](a => (a.toString, null))
 
   val adjuster = new TableColumnAdjuster(peer)
 
@@ -36,6 +40,13 @@ class XTreeTable(var rootNode: TreeTableNode) extends Component {
       }
     })
   }
+
+  def renderer_=[T <: TreeTableNode](renderer: T => (String, Icon)) = {
+    cellRenderer = new SimpleCellRenderer[T](renderer)
+    peer.setTreeCellRenderer(cellRenderer)
+  }
+
+  def renderer = cellRenderer.render
 
   def adjustColumns = adjuster.adjustColumns()
 
@@ -64,6 +75,21 @@ class XTreeTable(var rootNode: TreeTableNode) extends Component {
   def root_=(root: TreeTableNode) = {
     rootNode = root
     peer.setTreeTableModel(new DefaultTreeTableModel(root))
+  }
+}
+
+class SimpleCellRenderer[A](val render: A => (String, Icon)) extends DefaultTreeCellRenderer {
+  override def getTreeCellRendererComponent(p1: JTree, p2: Any, p3: Boolean,
+                                            p4: Boolean, p5: Boolean, p6: Int,
+                                            p7: Boolean): awt.Component =  {
+
+    val comp = super.getTreeCellRendererComponent(p1, p2, p3, p4, p5, p6, p7)
+    val value = p2.asInstanceOf[A]
+    val rendered = render(value)
+    setText(rendered._1)
+    setIcon(rendered._2)
+
+    comp
   }
 }
 

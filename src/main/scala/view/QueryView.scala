@@ -1,6 +1,6 @@
 package view
 
-import _root_.model.EmptyQueryResult
+import _root_.model.{QueryColumnResultNode, QueryRowResultNode, EmptyQueryResult}
 import moreswing.swing.InternalFrame
 import scala.swing._
 import javax.swing._
@@ -21,6 +21,9 @@ import scala.swing.Button
 import java.awt.Dimension
 import scala.swing.TextField
 import org.jdesktop.swingx.decorator.HighlighterFactory
+import javax.swing.tree.DefaultTreeCellRenderer
+import util.IconHelper
+import org.jdesktop.swingx.treetable.TreeTableNode
 
 /**
  * author mikwie
@@ -28,9 +31,18 @@ import org.jdesktop.swingx.decorator.HighlighterFactory
  */
 class QueryView(title: String) extends InternalFrame(title, true, true, true, true) {
 
+  val rowIcon = IconHelper.fromResource("/icons/16x16/administrative-docs.png")
+  val columnIcon = IconHelper.fromResource("/icons/16x16/sign-in.png")
+
   val treeTable = new XTreeTable(EmptyQueryResult) {
     highlighters = HighlighterFactory.createSimpleStriping(new Color(233, 237, 242))
     rowHeight = 30
+    renderer = (n: TreeTableNode) => n match {
+      case n: QueryRowResultNode => (n.key, rowIcon)
+      case n: QueryColumnResultNode => (n.value, columnIcon)
+      case EmptyQueryResult => ("Empty result", null)
+      case _ => ("Error", null)
+    }
   }
 
   val rowKeyTextField = new TextField() {
