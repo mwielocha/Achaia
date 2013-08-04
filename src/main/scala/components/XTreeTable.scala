@@ -86,7 +86,6 @@ class SimpleCellRenderer[A](val render: A => (String, Icon)) extends DefaultTree
     val comp = super.getTreeCellRendererComponent(p1, p2, p3, p4, p5, p6, p7)
     val value = p2.asInstanceOf[A]
     val rendered = render(value)
-    setText(rendered._1)
     setIcon(rendered._2)
 
     comp
