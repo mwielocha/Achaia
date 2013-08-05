@@ -15,7 +15,16 @@ import org.jdesktop.swingx.treetable.TreeTableNode
 
 case class QueryModel(val size: Int)
 
-case object EmptyQueryResult extends SimpleTreeTableNode[String] {
+trait AbstractQueryResultNode extends SimpleTreeTableNode[String] {
+
+  def withParent(parent: AbstractQueryResultNode): AbstractQueryResultNode
+
+}
+
+case object EmptyQueryResult extends AbstractQueryResultNode {
+
+  def withParent(parent: AbstractQueryResultNode): AbstractQueryResultNode = this
+
   def childrenStream: Stream[_ <: TreeTableNode] = Stream.Empty
 
   def valueAt(index: Int): String = "Empty result"
@@ -25,9 +34,11 @@ case object EmptyQueryResult extends SimpleTreeTableNode[String] {
   def parent: Option[_ <: SimpleTreeTableNode[String]] = None
 }
 
-case class QueryResultNode(val rows: Seq[QueryRowResultNode], size: Int) extends SimpleTreeTableNode[String] {
+case class QueryResultNode(val rows: Seq[QueryRowResultNode], size: Int) extends AbstractQueryResultNode {
 
   val sequance = rows.map(row => row.copy(parent = Some(this)))
+
+  def withParent(parent: AbstractQueryResultNode): QueryResultNode = this
 
   def childrenStream = sequance.toStream
 
@@ -41,15 +52,18 @@ case class QueryResultNode(val rows: Seq[QueryRowResultNode], size: Int) extends
 object QueryResultNode {
 
   def apply(rows: Rows[_, _], size: Int): QueryResultNode = {
-    QueryResultNode(rows.toStream.take(size).map(QueryRowResultNode(_)), size)
+    QueryResultNode(rows.toStream.take(size).map(QueryRowResultNode(_, 60)), size)
   }
 }
 
-case class QueryRowResultNode(val parent: Option[QueryResultNode], val key: String, val columns: Seq[QueryColumnResultNode], size: Int = 10) extends SimpleTreeTableNode[String] {
+case class QueryRowResultNode(val parent: Option[AbstractQueryResultNode], val key: String, val columns: Seq[AbstractQueryResultNode], size: Int = 10) extends AbstractQueryResultNode {
 
-  val sequence = columns.map(_.copy(parent = Some(this)))
+  val sequence = columns.map(_.withParent(this))
 
   val values = Seq(key, "")
+
+
+  def withParent(parent: AbstractQueryResultNode): AbstractQueryResultNode = copy(parent = Some(parent))
 
   def childrenStream = sequence.toStream
 
@@ -61,14 +75,19 @@ case class QueryRowResultNode(val parent: Option[QueryResultNode], val key: Stri
 
 object QueryRowResultNode {
 
-  def apply(row: Row[_, _]): QueryRowResultNode = {
-    QueryRowResultNode(None, row.getKey.toString, row.getColumns.toStream.map(QueryColumnResultNode(_)))
+  def apply(row: Row[_, _], size: Int): QueryRowResultNode = {
+    row.getColumns.toStream.map(QueryColumnResultNode(_)) match {
+      case columns if(columns.size > size) => QueryRowResultNode(None, row.getKey.toString, columns.take(size) :+ QueryMoreResultNode(None))
+      case columns => QueryRowResultNode(None, row.getKey.toString, columns.take(size))
+    }
   }
 }
 
-case class QueryColumnResultNode(val parent: Option[QueryRowResultNode], val name: String, val value: String) extends SimpleTreeTableNode[String] {
+case class QueryColumnResultNode(val parent: Option[AbstractQueryResultNode], val name: String, val value: String) extends AbstractQueryResultNode {
 
   val values = Seq(name, value)
+
+  def withParent(parent: AbstractQueryResultNode): AbstractQueryResultNode = copy(parent = Some(parent))
 
   def childrenStream: Stream[_ <: TreeTableNode] = Stream.empty[TreeTableNode]
 
@@ -83,3 +102,16 @@ object QueryColumnResultNode {
     QueryColumnResultNode(None, column.getName.toString, column.getStringValue)
   }
 }
+
+case class QueryMoreResultNode(val parent: Option[AbstractQueryResultNode]) extends AbstractQueryResultNode {
+
+  def withParent(parent: AbstractQueryResultNode): AbstractQueryResultNode = copy(parent = Some(parent))
+
+  def childrenStream: Stream[_ <: TreeTableNode] = Stream.Empty
+
+  def valueAt(index: Int): String = ""
+
+  def columnCount: Int = 2
+
+}
+

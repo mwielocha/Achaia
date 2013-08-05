@@ -58,7 +58,7 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
 
   def queryWithRowKey(keyspace: String, columnFamily: String, rowKey: String): Rows[String, AnyRef] = {
     this(keyspace).prepareQuery(createColumnfamily(keyspace, columnFamily))
-      .getRowSlice(rowKey).withColumnRange(getNull[AnyRef], getNull[AnyRef], false, 60)
+      .getRowSlice(rowKey).withColumnRange(getNull[AnyRef], getNull[AnyRef], false, 61)
       .execute().getResult
   }
 

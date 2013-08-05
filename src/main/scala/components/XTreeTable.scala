@@ -23,8 +23,6 @@ class XTreeTable(var rootNode: TreeTableNode) extends Component {
 
   override lazy val peer = new JXTreeTable()
 
-  var cellRenderer: SimpleCellRenderer[_] = new SimpleCellRenderer[AnyRef](a => (a.toString, null))
-
   val adjuster = new TableColumnAdjuster(peer)
 
   object selection extends Publisher {
@@ -41,14 +39,11 @@ class XTreeTable(var rootNode: TreeTableNode) extends Component {
     })
   }
 
-  def renderer_=[T <: TreeTableNode](renderer: T => (String, Icon)) = {
-    cellRenderer = new SimpleCellRenderer[T](renderer)
-    peer.setTreeCellRenderer(cellRenderer)
+  def renderer = peer.getTreeCellRenderer
+
+  def renderer_=(renderer: TreeCellRenderer) = {
+    peer.setTreeCellRenderer(renderer)
   }
-
-  def renderer = cellRenderer.render
-
-  def adjustColumns = adjuster.adjustColumns()
 
   def adjustColumn(index: Int) = adjuster.adjustColumn(index)
 

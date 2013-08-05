@@ -6,6 +6,7 @@ import model.DefinitionNode
 import scalaswingcontrib.tree.TreeModel
 import scala.swing.event.{ButtonClicked, Key, MouseClicked}
 import Key.Modifier._
+import java.awt.Point
 
 /**
  * author mikwie
@@ -16,6 +17,8 @@ class ClusterController {
   self: CassandraAware =>
 
   val view = new ClusterView(cassandraService.cassandraUri)
+
+  var corner = 0
 
   var nodeModel: (DefinitionNode, DefinitionNode) = _
 
@@ -48,15 +51,41 @@ class ClusterController {
     }
   }
 
+  def openQueryView(keyspace: DefinitionNode, columnFamily: DefinitionNode) = {
+    val queryController = new QueryController(keyspace, columnFamily) with CassandraAware {
+      override lazy val cassandraService = self.cassandraService
+    }
+    corner = corner match {
+      case conrner if(conrner > 100) => 0
+      case _ => corner + 25
+    }
+    queryController.view.location = new Point(corner, corner)
+    view.desktop += queryController.view
+    queryController.view.front
+  }
+
   view.tree.listenTo(view.Popup.browse)
   view.tree.reactions += {
     case ButtonClicked(view.Popup.browse) => {
       val (keyspace, cf) = nodeModel
-      val queryController = new QueryController(keyspace, cf) with CassandraAware {
-        override lazy val cassandraService = self.cassandraService
+       openQueryView(keyspace, cf)
+    }
+  }
+
+  view.listenTo(view.tree.mouse.clicks)
+  view.reactions += {
+    case MouseClicked(view.tree, point, _, 2, _) => {
+      val path = view.tree.getClosestPathForLocation(point.x, point.y)
+      path.last match {
+        case columnFamily @ DefinitionNode(_, DefinitionNode.Type.ColumnFamily, _)  => {
+          path.head match {
+            case keyspace @ DefinitionNode(_, DefinitionNode.Type.Keyspace, _) => {
+              openQueryView(keyspace, columnFamily)
+            }
+          }
+        }
+        case _ =>
       }
-      view.desktop += queryController.view
-      queryController.view.front
     }
   }
 
