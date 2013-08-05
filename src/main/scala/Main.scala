@@ -7,20 +7,18 @@ import swing._
 import view.ConnectionView
 import scala.collection.JavaConversions._
 
-object Main extends ApplicationListener {
+object Main extends App with ApplicationListener {
 
-  def main(args: Array[String]) {
-    System.setProperty("apple.laf.useScreenMenuBar", "true")
-    System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Achaia");
+  System.setProperty("apple.laf.useScreenMenuBar", "true")
+  System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Achaia");
 
-    SwingUtilities.invokeLater(new Runnable {
-      def run() {
-        val defaultApplication = new DefaultApplication()
-        defaultApplication.addApplicationListener(Main.this)
-        new ConnectionController
-      }
-    })
-  }
+  SwingUtilities.invokeLater(new Runnable {
+    def run() {
+      val defaultApplication = new DefaultApplication()
+      defaultApplication.addApplicationListener(Main.this)
+      new ConnectionController
+    }
+  })
 
   def handleAbout(event: ApplicationEvent) {
     JOptionPane.showMessageDialog(null, "OS X told us to open " + event.getFilename());

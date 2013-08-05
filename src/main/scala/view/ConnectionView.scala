@@ -47,7 +47,7 @@ class ConnectionView extends Dialog with ExceptionHandling {
   }
 
   size = new Dimension(536, 393 + 160)
-  resizable = true
+  resizable = false
   centerOnScreen()
   visible = true
 }

@@ -38,7 +38,7 @@ object ApplicationBuild extends Build {
     scalaVersion        := "2.10.2",
 //    scalacOptions       := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions", "-language:postfixOps"),
 //    javacOptions in GlobalScope += "-Djava.library.path=lib",
-    javacOptions ++= Seq("-source", "1.6"),
+    javacOptions ++= Seq("-source", "1.6") ++ Seq("-target", "1.6"),
     javaOptions in Test += "-Xdock:name=\"Alessio\" -Dconfig.file=conf/test-application.conf",
     mainClass in assembly := Some("Main"),
     mergeStrategy in assembly <<= (mergeStrategy in assembly)(old => {
