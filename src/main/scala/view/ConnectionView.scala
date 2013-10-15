@@ -19,7 +19,7 @@ import javax.swing.border.{EtchedBorder, Border}
 class ConnectionView extends Dialog with ExceptionHandling {
 
   val nameTextField = new TextField
-  val hostTestField = new TextField
+  val hostTextField = new TextField
   val portTextField = new TextField
 
   val connect = new Button("Connect")
@@ -38,7 +38,7 @@ class ConnectionView extends Dialog with ExceptionHandling {
         new Label("name:"),
         nameTextField,
         new Label("host:"),
-        hostTestField,
+        hostTextField,
         new Label("port:"),
         portTextField
       )

@@ -4,10 +4,9 @@ import com.netflix.astyanax.{Keyspace, Cluster}
 import scala.collection.mutable
 import scala.collection.JavaConversions._
 import util.Logging
-import com.netflix.astyanax.model.{Rows, ColumnFamily}
+import com.netflix.astyanax.model.{Column, Rows, ColumnFamily}
 import com.netflix.astyanax.serializers.{TimeUUIDSerializer, StringSerializer}
-import java.util.UUID
-import java.nio.ByteBuffer
+import com.netflix.astyanax.Serializer
 
 /**
  * author mikwie
@@ -44,10 +43,10 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
 
   def cassandraUri = clusterName + ":" + clusterHost + ":" + clusterPort
 
-  def query(keyspace: String, columnFamily: String): Rows[String, AnyRef] = {
+  def query(keyspace: String, columnFamily: String): Rows[AnyRef, AnyRef] = {
     val comparatorType = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getComparatorType
     val validatorType = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getKeyValidationClass
-    logger.info("Comparator: " + comparatorType + ", validator: " + validatorType)
+    logger.debug("Comparator: " + comparatorType + ", validator: " + validatorType)
 
     this(keyspace).prepareQuery(createColumnfamily(keyspace, columnFamily))
       .getAllRows.setRowLimit(20).withColumnRange(getNull[AnyRef], getNull[AnyRef], false, 20)
@@ -56,31 +55,44 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
 
   def getNull[C]: C = null.asInstanceOf[C]
 
-  def queryWithRowKey(keyspace: String, columnFamily: String, rowKey: String): Rows[String, AnyRef] = {
+  def queryWithRowKey(keyspace: String, columnFamily: String, rowKey: String): Rows[AnyRef, AnyRef] = {
     this(keyspace).prepareQuery(createColumnfamily(keyspace, columnFamily))
-      .getRowSlice(rowKey).withColumnRange(getNull[AnyRef], getNull[AnyRef], false, 61)
+      .getRowSlice(serializeRowKey(keyspace, columnFamily, rowKey))
+      .withColumnRange(getNull[AnyRef], getNull[AnyRef], false, 61)
+      .execute().getResult
+  }
+  
+  def queryWithBothKeys(keyspace: String, columnFamily: String, rowKey: String, columnKey: String): Rows[AnyRef, AnyRef] = {
+    this(keyspace).prepareQuery(createColumnfamily(keyspace, columnFamily))
+      .getRowSlice(serializeRowKey(keyspace, columnFamily, rowKey))
+      .withColumnSlice(serializeColumnKey(keyspace, columnFamily, columnKey))
       .execute().getResult
   }
 
-  def createColumnfamily(keyspace: String, columnFamily: String): ColumnFamily[String, AnyRef] = {
-    val comparatorType = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getComparatorType
-    val instance = comparatorType match {
-      case "org.apache.cassandra.db.marshal.TimeUUIDType" => {
-        new ColumnFamily[String, UUID](columnFamily,
-          StringSerializer.get(), TimeUUIDSerializer.get()
-        )
-      }
-      case "org.apache.cassandra.db.marshal.ReversedType(org.apache.cassandra.db.marshal.TimeUUIDType)" => {
-        new ColumnFamily[String, UUID](columnFamily,
-          StringSerializer.get(), TimeUUIDSerializer.get()
-        )
-      }
-      case _ => {
-        new ColumnFamily[String, String](columnFamily,
-          StringSerializer.get(), StringSerializer.get()
-        )
-      }
-    }
-    instance.asInstanceOf[ColumnFamily[String, AnyRef]]
+  def serializeRowKey(keyspace: String, columnFamily: String, rowKey: String): AnyRef = {
+    val validator = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getKeyValidationClass
+    val serializer = matchSerializer(validator)
+    serializer.fromByteBuffer(serializer.fromString(rowKey))
+  }
+
+  def serializeColumnKey(keyspace: String, columnFamily: String, columnKey: String): AnyRef = {
+    val comparator = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getComparatorType
+    val serializer = matchSerializer(comparator)
+    serializer.fromByteBuffer(serializer.fromString(columnKey))
+  }
+
+  def createColumnfamily(keyspace: String, columnFamily: String): ColumnFamily[AnyRef, AnyRef] = {
+    val comparator = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getComparatorType
+    val validator = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getKeyValidationClass
+    val instance = new ColumnFamily[AnyRef, AnyRef](columnFamily,
+      matchSerializer(validator), matchSerializer(comparator))
+    instance.asInstanceOf[ColumnFamily[AnyRef, AnyRef]]
+  }
+
+  private def matchSerializer(className: String): Serializer[AnyRef] = {
+    (className.reverse.takeWhile(_ != '.').reverse.replace(")", "") match {
+      case "TimeUUIDType" => TimeUUIDSerializer.get()
+      case other => logger.debug(s"serializer: $other"); StringSerializer.get()
+    }).asInstanceOf[Serializer[AnyRef]]
   }
 }

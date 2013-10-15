@@ -70,21 +70,33 @@ class QueryView(title: String) extends InternalFrame(title, true, true, true, tr
     background = null
   }
 
+  val columnKeyTextField = new TextField() {
+    columns = 60
+    editable = false
+    border = BorderFactory.createEmptyBorder()
+    background = null
+  }
+
   object Query {
     val button = new Button("Search") {
       preferredSize = new Dimension(30, 20)
     }
 
-    val field = new TextField("") {
+    val rowKeyField = new TextField("") {
       columns = 20
+    }
+
+    val clmKeyField = new TextField("") {
+      columns = 20
+      enabled = false
     }
   }
 
   val leftPanel = new FlowPanel(new GridPanel(0, 2) {
     contents ++= Seq(
-      new Label("Row key:"),
-      Query.field, new Label(""),
-      Query.button
+      new Label("Row key:"), Query.rowKeyField,
+      new Label("Column key:"), Query.clmKeyField,
+      new Label(""), Query.button
     )
   }) {
     border = BorderFactory.createTitledBorder("Query")
@@ -106,7 +118,10 @@ class QueryView(title: String) extends InternalFrame(title, true, true, true, tr
 
   val outerSplitPane = new SplitPane(Orientation.Horizontal, innerSplitPane,
     new BorderPanel {
-      add(new FlowPanel(FlowPanel.Alignment.Left)(new Label("Row:"), rowKeyTextField), BorderPanel.Position.North)
+      add(new FlowPanel(FlowPanel.Alignment.Left)(
+        new Label("Row:"), rowKeyTextField,
+        new Label("Column:"), columnKeyTextField
+      ), BorderPanel.Position.North)
       add(new ScrollPane(editor), BorderPanel.Position.Center)
     }
   ) {

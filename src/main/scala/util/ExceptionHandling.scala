@@ -24,7 +24,7 @@ trait ExceptionHandling {
       add(new ScrollPane(new TextArea(stackTrace) {
         editable = false
       }) {
-        preferredSize = new Dimension(800, 500)
+        preferredSize = new Dimension(400, 220)
       }, BorderPanel.Position.Center)
       add(new FlowPanel(FlowPanel.Alignment.Right)(new Button(Action("Ok") {
         ErrorDialog.this.dispose()
@@ -46,7 +46,9 @@ trait ExceptionHandling {
         val writer = new StringWriter()
         val printWriter = new PrintWriter(writer)
         e.printStackTrace(printWriter)
-        new ErrorDialog(e.getMessage, writer.toString).visible = true
+        val errorDialog = new ErrorDialog(e.getMessage, writer.toString)
+        errorDialog.centerOnScreen()
+        errorDialog.visible = true
       }
     }
   }
