@@ -119,8 +119,7 @@ class QueryView(title: String) extends InternalFrame(title, true, true, true, tr
   val outerSplitPane = new SplitPane(Orientation.Horizontal, innerSplitPane,
     new BorderPanel {
       add(new FlowPanel(FlowPanel.Alignment.Left)(
-        new Label("Row:"), rowKeyTextField,
-        new Label("Column:"), columnKeyTextField
+        new Label("Row:"), rowKeyTextField
       ), BorderPanel.Position.North)
       add(new ScrollPane(editor), BorderPanel.Position.Center)
     }

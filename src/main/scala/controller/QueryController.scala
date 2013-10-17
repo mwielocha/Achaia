@@ -68,8 +68,12 @@ class QueryController(val keyspace: DefinitionNode, val cf: DefinitionNode) exte
     case e: TreeSelectionChanged => {
       e.path.getLastPathComponent match {
         case node: QueryColumnResultNode => {
+          // TODO: clean
           Future {
-            view.editor.text = JsonFormatter.format(node.valueAt(1))
+            val json = JsonFormatter.format(node.valueAt(1))
+            Swing.onEDT {
+              view.editor.text = json
+            }
             node.parent match {
               case Some(parent) => {
                 Swing.onEDT {
