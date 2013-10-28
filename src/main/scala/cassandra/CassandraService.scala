@@ -92,7 +92,7 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
   private def matchSerializer(className: String): Serializer[AnyRef] = {
     (className.reverse.takeWhile(_ != '.').reverse.replace(")", "") match {
       case "TimeUUIDType" => TimeUUIDSerializer.get()
-      case "CounterType" | "LongType" => LongSerializer.get()
+      case "CounterColumnType" | "LongType" => LongSerializer.get()
       case other => logger.debug(s"serializer: $other"); StringSerializer.get()
     }).asInstanceOf[Serializer[AnyRef]]
   }
