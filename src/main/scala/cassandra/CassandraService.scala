@@ -5,7 +5,7 @@ import scala.collection.mutable
 import scala.collection.JavaConversions._
 import util.Logging
 import com.netflix.astyanax.model.{Column, Rows, ColumnFamily}
-import com.netflix.astyanax.serializers.{TimeUUIDSerializer, StringSerializer}
+import com.netflix.astyanax.serializers.{LongSerializer, TimeUUIDSerializer, StringSerializer}
 import com.netflix.astyanax.Serializer
 
 /**
@@ -92,6 +92,7 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
   private def matchSerializer(className: String): Serializer[AnyRef] = {
     (className.reverse.takeWhile(_ != '.').reverse.replace(")", "") match {
       case "TimeUUIDType" => TimeUUIDSerializer.get()
+      case "CounterType" | "LongType" => LongSerializer.get()
       case other => logger.debug(s"serializer: $other"); StringSerializer.get()
     }).asInstanceOf[Serializer[AnyRef]]
   }
