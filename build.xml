@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Achaia" default="default" basedir=".">        
+    <taskdef name="jarbundler"
+             classname="net.sourceforge.jarbundler.JarBundler"
+             classpath="jarbundler/jarbundler-2.2.0.jar" />
+
+    <target name="bundle">
+        <jarbundler dir="."
+                    name="Achaia"
+                    mainclass="main.Achaia"
+                    jar="target/scala-2.10/Achaia-assembly-1.0.2-SNAPSHOT.jar"
+                    icon="src/main/resources/cassandra-icon.icns"/>
+    </target>
+</project>
