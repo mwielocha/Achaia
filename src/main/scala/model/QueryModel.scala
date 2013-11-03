@@ -4,6 +4,7 @@ import com.netflix.astyanax.model.{Column, Rows, Row}
 import components.{SimpleTreeTableNode}
 import scala.collection.JavaConversions._
 import org.jdesktop.swingx.treetable.TreeTableNode
+import com.netflix.astyanax.thrift.model.{ThriftCounterColumnImpl, ThriftColumnImpl}
 
 /**
  * Created with IntelliJ IDEA.
@@ -99,7 +100,15 @@ case class QueryColumnResultNode(val parent: Option[AbstractQueryResultNode], va
 object QueryColumnResultNode {
 
   def apply(column: Column[_]): QueryColumnResultNode = {
-    QueryColumnResultNode(None, column.getName.toString, column.getStringValue)
+    QueryColumnResultNode(None, column.getName.toString, getColumnValueAsString(column))
+  }
+
+  private def getColumnValueAsString(column: Column[_]): String = {
+    column match {
+      case column: ThriftColumnImpl[_] => column.getStringValue
+      case column: ThriftCounterColumnImpl[_] => column.getLongValue + ""
+      case otherwise => throw new IllegalStateException(s"Unknown thrift column type: $column")
+    }
   }
 }
 
