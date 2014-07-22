@@ -4,9 +4,11 @@ import com.netflix.astyanax.{Keyspace, Cluster}
 import scala.collection.mutable
 import scala.collection.JavaConversions._
 import util.Logging
-import com.netflix.astyanax.model.{Column, Rows, ColumnFamily}
-import com.netflix.astyanax.serializers.{LongSerializer, TimeUUIDSerializer, StringSerializer}
+import com.netflix.astyanax.model.{Composite, Column, Rows, ColumnFamily}
+import com.netflix.astyanax.serializers.{CompositeSerializer, LongSerializer, TimeUUIDSerializer, StringSerializer}
 import com.netflix.astyanax.Serializer
+import java.util
+import java.nio.ByteBuffer
 
 /**
  * author mikwie
@@ -72,12 +74,14 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
   def serializeRowKey(keyspace: String, columnFamily: String, rowKey: String): AnyRef = {
     val validator = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getKeyValidationClass
     val serializer = matchSerializer(validator)
+    logger.debug(s"Serializer matched: $serializer")
     serializer.fromByteBuffer(serializer.fromString(rowKey))
   }
 
   def serializeColumnKey(keyspace: String, columnFamily: String, columnKey: String): AnyRef = {
     val comparator = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getComparatorType
     val serializer = matchSerializer(comparator)
+    logger.debug(s"Serializer matched: $serializer")
     serializer.fromByteBuffer(serializer.fromString(columnKey))
   }
 
@@ -89,11 +93,51 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
     instance.asInstanceOf[ColumnFamily[AnyRef, AnyRef]]
   }
 
+  val CompositeTypeMatcher = """org.apache.cassandra.db.marshal.CompositeType\((.*)\)""".r
+  val ReverseTypeMatcher = """org.apache.cassandra.db.marshal.ReversedType\((.*)\)""".r
+
+  private def nameOfType(className: String) = {
+    className.reverse.takeWhile(_ != '.').reverse.replace(")", "")
+  }
+
+  case class CustomCompositeSerializer(val serializers: Seq[String]) extends CompositeSerializer {
+
+    override def getComparators: util.List[String] = serializers.map(nameOfType).toList
+
+    val CompositeKey = "\\[(.*)\\]".r
+
+    override def fromString(key: String): ByteBuffer = {
+      key match {
+        case CompositeKey(keys) => {
+          val objects = keys.split(",").map(_.trim).zip(serializers).map {
+            case (value, className) => {
+              val serializer = matchSerializer(className)
+              serializer.fromByteBuffer(serializer.fromString(value))
+            }
+          }
+
+          new Composite(objects: _*).serialize()
+        }
+        case key => throw new IllegalArgumentException()
+      }
+    }
+  }
+
   private def matchSerializer(className: String): Serializer[AnyRef] = {
-    (className.reverse.takeWhile(_ != '.').reverse.replace(")", "") match {
-      case "TimeUUIDType" => TimeUUIDSerializer.get()
-      case "CounterColumnType" | "LongType" => LongSerializer.get()
-      case other => logger.debug(s"serializer: $other"); StringSerializer.get()
+    logger.debug(s"Matching serializer for: $className")
+    (className match {
+      case CompositeTypeMatcher(inner) => {
+        logger.debug(s"Inner serializers: $inner")
+        CustomCompositeSerializer(inner.split(","))
+      }
+      case className => {
+        (nameOfType(className) match {
+          case "TimeUUIDType" => TimeUUIDSerializer.get()
+          case "CounterColumnType" | "LongType" => LongSerializer.get()
+          case "CompositeType" => CompositeSerializer.get()
+          case other => logger.debug(s"serializer: $other"); StringSerializer.get()
+        })
+      }
     }).asInstanceOf[Serializer[AnyRef]]
   }
 }

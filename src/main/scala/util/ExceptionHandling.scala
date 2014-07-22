@@ -46,6 +46,7 @@ trait ExceptionHandling {
         val writer = new StringWriter()
         val printWriter = new PrintWriter(writer)
         e.printStackTrace(printWriter)
+        e.printStackTrace()
         val errorDialog = new ErrorDialog(e.getMessage, writer.toString)
         errorDialog.centerOnScreen()
         errorDialog.visible = true
