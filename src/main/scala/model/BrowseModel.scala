@@ -36,7 +36,6 @@ class BrowseTableModel[C](val columns: ColumnList[C]) extends AbstractTableModel
 
   val stream = columns.toStream
 
-
   override def getColumnName(p1: Int): String = Seq("Column name", "Column value")(p1)
 
   def getRowCount: Int = columns.size()
