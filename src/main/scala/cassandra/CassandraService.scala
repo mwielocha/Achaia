@@ -43,7 +43,7 @@ class CassandraService(val clusterName: String, val clusterHost: String, val clu
   def getColumnFamilies(keyspace: String): Seq[String] = cluster.describeKeyspaces()
     .find(_.getName == keyspace).map(_.getColumnFamilyList.map(_.getName)).getOrElse(Seq("Error"))
 
-  def cassandraUri = clusterName + ":" + clusterHost + ":" + clusterPort
+  def cassandraUri = clusterName
 
   def query(keyspace: String, columnFamily: String): Rows[AnyRef, AnyRef] = {
     val comparatorType = cluster.describeKeyspace(keyspace).getColumnFamily(columnFamily).getComparatorType

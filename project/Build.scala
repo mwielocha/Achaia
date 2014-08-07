@@ -12,7 +12,7 @@ object ApplicationBuild extends Build {
   }
 
   val appName         = "Achaia"
-  val appVersion      = "1.0.2-SNAPSHOT"
+  val appVersion      = "1.1.0-SNAPSHOT"
 
   val appDependencies =  Seq(
     "com.netflix.astyanax" % "astyanax-core" % V.astyanax /*exclude("org.slf4j", "slf4j-log4j12")*/,

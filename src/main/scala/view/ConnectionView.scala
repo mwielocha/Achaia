@@ -18,9 +18,11 @@ import javax.swing.border.{EtchedBorder, Border}
  */
 class ConnectionView extends Dialog with ExceptionHandling {
 
-  val nameTextField = new TextField
-  val hostTextField = new TextField
-  val portTextField = new TextField
+  import ComboBox.stringEditor
+
+  val hostComboBox = new ComboBox[String](Nil)
+
+  hostComboBox.makeEditable()
 
   val connect = new Button("Connect")
 
@@ -32,21 +34,11 @@ class ConnectionView extends Dialog with ExceptionHandling {
   title = "New Connection"
   contents = new BorderPanel {
     add(imagePanel, BorderPanel.Position.North)
-    add(new GridPanel(3, 2) {
-      border = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED)
-      contents ++= Seq(
-        new Label("name:"),
-        nameTextField,
-        new Label("host:"),
-        hostTextField,
-        new Label("port:"),
-        portTextField
-      )
-    }, BorderPanel.Position.Center)
+    add(hostComboBox, BorderPanel.Position.Center)
     add(connect, BorderPanel.Position.South)
   }
 
-  size = new Dimension(536, 393 + 160)
+  size = new Dimension(536, 393 + 80)
   resizable = false
   centerOnScreen()
   visible = true

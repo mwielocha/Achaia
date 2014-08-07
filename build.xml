@@ -8,7 +8,7 @@
         <jarbundler dir="."
                     name="Achaia"
                     mainclass="main.Achaia"
-                    jar="target/scala-2.10/Achaia-assembly-1.0.2-SNAPSHOT.jar"
+                    jar="target/scala-2.10/Achaia-assembly-1.1.0-SNAPSHOT.jar"
                     icon="src/main/resources/cassandra-icon.icns"/>
     </target>
 </project>

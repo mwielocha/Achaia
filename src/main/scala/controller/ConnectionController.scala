@@ -6,6 +6,12 @@ import util.{ExceptionHandling, Logging}
 import model.ConnectionModel
 import cassandra.{CassandraService, CassandraAware}
 import scala.swing.event.Key._
+import scala.io.{Codec, Source}
+import java.io.File
+import org.jdesktop.swingx.combobox.ListComboBoxModel
+import scala.swing.ComboBox
+import com.google.common.io.Files
+import com.google.common.base.Charsets
 
 /**
  * author mikwie
@@ -14,12 +20,10 @@ import scala.swing.event.Key._
 class ConnectionController extends Logging with ExceptionHandling {
 
   val view = new ConnectionView
-  var connectionModel = ConnectionModel()
+  var connectionModel = loadSavedConnections
 
   view.listenTo(view.connect)
-  view.listenTo(view.nameTextField)
-  view.listenTo(view.hostTextField)
-  view.listenTo(view.portTextField)
+  view.listenTo(view.hostComboBox)
 
   view.reactions += {
     case ButtonClicked(view.connect) => {
@@ -47,23 +51,52 @@ class ConnectionController extends Logging with ExceptionHandling {
           connectionModel.port
         )
       }
+
+      saveConnection(connectionModel.name)
+      view.dispose()
     }
-    view.dispose()
   }
   
 
   def setData = {
-    view.nameTextField.text = connectionModel.name
-    view.hostTextField.text = connectionModel.host
-    view.portTextField.text = connectionModel.port.toString
+    view.hostComboBox.item = s"${connectionModel.host}:${connectionModel.port.toString}"
   }
 
   def getData = {
+    val hostName = view.hostComboBox.item
     ConnectionModel(
-      view.nameTextField.text,
-      view.hostTextField.text,
-      view.portTextField.text.toInt
+      hostName,
+      hostName.split(":")(0),
+      hostName.split(":")(1).toInt
     )
+  }
+
+  def loadSavedConnections: ConnectionModel = {
+    val file = new File("connections.txt")
+    if(file.exists()) {
+      val savedConnections = Source.fromFile(file)(Codec.UTF8).getLines().toSeq
+      view.hostComboBox.peer.setModel {
+        ComboBox.newConstantModel(savedConnections)
+      }
+
+      savedConnections.headOption.map(lastConnection => {
+        val array = lastConnection.split(":")
+        ConnectionModel(lastConnection, array(0), array(1).toInt)
+      }).getOrElse(ConnectionModel())
+    } else {
+      ConnectionModel()
+    }
+  }
+
+  def saveConnection(connection: String) = {
+    val file = new File("connections.txt")
+    val saved = file.exists() match {
+      case true => Source.fromFile(file)(Codec.UTF8).getLines().toSeq
+      case false => Nil
+    }
+
+    val udpated = (connection +: saved).distinct.take(5).mkString("\n")
+    Files.write(udpated, file, Charsets.UTF_8)
   }
 
   setData
